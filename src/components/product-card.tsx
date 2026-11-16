@@ -1,0 +1,70 @@
+import Link from 'next/link';
+import { Icon } from '@/components/icons';
+import { WishHeart } from '@/components/wish-heart';
+import { nameIn, translator, type Locale } from '@/lib/i18n';
+import { imageUrl, type ProductCard as Card } from '@/lib/storefront';
+
+/**
+ * بطاقة منتج — ورقة المكوّنات، المكوّن 9.
+ *
+ * مكوّن خادم بلا حالة. السعر بالفيروزي وحده (المال لا يُستعمل زينة)،
+ * والنافد يُعرض ويُقال إنه نفد لا يُخفى — إخفاؤه يُفقد رابطاً مفهرساً
+ * ويُربك من رآه أمس.
+ */
+export function ProductCard({ product, locale = 'ar' }: { product: Card; locale?: Locale }) {
+  const t = translator(locale);
+  const name = locale === 'en' && product.nameEn ? product.nameEn : product.nameAr;
+  const src = imageUrl(product.thumbnail);
+  const discounted =
+    product.compareAtPrice && BigInt(product.compareAtPrice.minorUnits) > BigInt(product.price.minorUnits);
+
+  return (
+    <article className="pcard" data-sold-out={product.isSoldOut}>
+      <Link href={`/p/${product.slug}`} className="pcard__link" tabIndex={-1} aria-hidden>
+        <div className="pcard__media">
+          {src ? (
+            // صورة المنتج من خادم الرفع مباشرةً؛ next/image يحتاج إعداد مضيف بعيد لا يلزم محلياً
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={src} alt="" loading="lazy" width={400} height={500} />
+          ) : (
+            <span className="pcard__placeholder" aria-hidden>
+              {name.slice(0, 1)}
+            </span>
+          )}
+          {product.isSoldOut ? <span className="badge badge--pending pcard__flag">{t('نفد', 'Sold out')}</span> : null}
+          {!product.isSoldOut && discounted ? <span className="badge badge--solid pcard__flag">{t('خصم', 'Sale')}</span> : null}
+        </div>
+      </Link>
+      <div className="pcard__body">
+        <Link href={`/p/${product.slug}`} className="pcard__link">
+          <h3 className="pcard__name">{name}</h3>
+        </Link>
+        <Link href={`/s/${product.vendor.slug}`} className="pcard__vendor">
+          <Icon name="store" size={12} />
+          {nameIn(locale, product.vendor)}
+        </Link>
+        <div className="pcard__foot">
+          <p className="pcard__price">
+            <span className="money num">{product.price.formatted}</span>
+            {discounted && product.compareAtPrice ? <s className="num">{product.compareAtPrice.formatted}</s> : null}
+          </p>
+          {/* جزيرة عميل صغيرة — البطاقة نفسها تبقى مكوّن خادم، والمعرّفات تُجلب مرة للصفحة */}
+          <WishHeart productId={product.id} name={name} variant="card" />
+        </div>
+        {!product.isSoldOut && product.available > 0 && product.available <= 3 ? (
+          <span className="pcard__stock">{t(`بقي ${product.available} فقط`, `Only ${product.available} left`)}</span>
+        ) : null}
+      </div>
+    </article>
+  );
+}
+
+export function ProductGrid({ products, locale = 'ar' }: { products: Card[]; locale?: Locale }) {
+  return (
+    <div className="pgrid">
+      {products.map((p) => (
+        <ProductCard key={p.id} product={p} locale={locale} />
+      ))}
+    </div>
+  );
+}

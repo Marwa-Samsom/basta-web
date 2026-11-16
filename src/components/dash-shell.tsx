@@ -1,0 +1,226 @@
+'use client';
+
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { Icon, type IconName } from '@/components/icons';
+import { LanguageToggle, useT } from '@/components/locale';
+import { ThemeToggle } from '@/components/theme-toggle';
+
+export interface DashNavItem {
+  href: string;
+  label: string;
+  /** الاسم حين يكون الموقع بالإنجليزية — بلا ترجمة يبقى العربي */
+  en?: string;
+  icon: IconName;
+  /** عدّاد ما ينتظر — يظهر حين يكون أكبر من صفر */
+  count?: number | undefined;
+  /** يطابق المسار حرفياً لا ببادئته — للرئيسية وأخواتها */
+  exact?: boolean;
+}
+
+export interface DashNavGroup {
+  label?: string;
+  en?: string | undefined;
+  items: DashNavItem[];
+}
+
+/** أطول بادئة مطابقة تفوز: «/vendor/products/import» لا يُضيء «المنتجات» معه */
+function activeHref(pathname: string, groups: DashNavGroup[]): string | null {
+  let best: string | null = null;
+  for (const item of groups.flatMap((g) => g.items)) {
+    const hit = item.exact ? pathname === item.href : pathname === item.href || pathname.startsWith(`${item.href}/`);
+    if (hit && (!best || item.href.length > best.length)) best = item.href;
+  }
+  return best;
+}
+
+/**
+ * قشرة اللوحتين — ملفات التصميم: شريط جانبي بعرض 232 فيه هوية المتجر أو
+ * الإدارة وأقسامها بأيقوناتها وعدّاداتها، وشريط علوي فيه عنوان القسم المفتوح
+ * والجرس والمستخدم. اللوحتان بسطح الموقع نفسه — كان شريط الإدارة معكوساً
+ * داكناً ليميّزها، وتوحّد بطلب صاحبة المشروع (17 أكتوبر 2026).
+ */
+export function DashShell({
+  ident,
+  groups,
+  tools,
+  user,
+  sideFoot,
+  banner,
+  exitHref,
+  density = 'compact',
+  mobileTabs = false,
+  children,
+}: {
+  ident: ReactNode;
+  groups: DashNavGroup[];
+  tools?: ReactNode;
+  user?: { name: string; sub?: string | undefined } | undefined;
+  sideFoot?: ReactNode;
+  banner?: ReactNode;
+  /** وجهة «✕» أعلى اللوحة: يغادرها إلى الموقع والجلسة باقية — غير «خروج» الذي ينهيها */
+  exitHref?: string;
+  /** اللوحتان تُشغَّلان (compact)، وحساب المشتري يُقرأ (comfortable) — القشرة واحدة */
+  density?: 'compact' | 'comfortable';
+  /**
+   * على الشاشة الضيّقة الأقسام شريط أقراص ظاهر يتمرّر أفقياً بدل الدرج خلف «القائمة»
+   * — لحساب المشتري (AUTH-089): أقسام قليلة يتنقّل بينها كثيراً. ذيل الشريط (خروج) في آخره.
+   */
+  mobileTabs?: boolean;
+  children: ReactNode;
+}) {
+  const t = useT();
+  const name = (x: { label: string; en?: string | undefined }) => t(x.label, x.en ?? x.label);
+  const pathname = usePathname();
+  // الدرج مفتوح على المسار الذي فُتح فيه وحده: الانتقال يغلقه بلا تأثير
+  const [openAt, setOpenAt] = useState<string | null>(null);
+  const open = openAt === pathname;
+  const setOpen = (next: boolean | ((v: boolean) => boolean)) =>
+    setOpenAt((typeof next === 'function' ? next(open) : next) ? pathname : null);
+  const current = activeHref(pathname, groups);
+  const titled = groups.flatMap((g) => g.items).find((i) => i.href === current);
+  const title = titled ? name(titled) : '';
+  const activeTab = useRef<HTMLAnchorElement>(null);
+
+  // القرص الحالي في مدى النظر على الشريط — «النزاعات» آخره لا تختفي خلف الحافة
+  useEffect(() => {
+    const el = activeTab.current;
+    const strip = el?.parentElement;
+    if (!el || !strip || strip.offsetParent === null) return;
+    strip.scrollLeft += el.getBoundingClientRect().left - strip.getBoundingClientRect().left - (strip.clientWidth - el.offsetWidth) / 2;
+  }, [current]);
+
+  // و Esc يغلقه
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpenAt(null);
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open]);
+
+  return (
+    <div className="dash" data-density={density} data-tabs={mobileTabs || undefined}>
+      <aside className="dash__side" data-open={open} id="dash-side">
+        {ident}
+        <nav className="dash__nav" aria-label={t('أقسام اللوحة', 'Dashboard sections')}>
+          {groups.map((g, gi) => (
+            <div key={g.label ?? gi} className="dash__nav">
+              {g.label ? <span className="dash__group">{name({ label: g.label, en: g.en })}</span> : null}
+              {g.items.map((item) => {
+                const active = item.href === current;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="dash__link"
+                    data-active={active}
+                    {...(active ? { 'aria-current': 'page' as const } : {})}
+                  >
+                    <Icon name={item.icon} size={17} />
+                    <span className="dash__link-label">{name(item)}</span>
+                    {item.count ? <span className="dash__count">{item.count}</span> : null}
+                  </Link>
+                );
+              })}
+            </div>
+          ))}
+        </nav>
+        {sideFoot ? <div className="dash__side-foot">{sideFoot}</div> : null}
+      </aside>
+      <div className="dash__scrim" data-open={open} onClick={() => setOpen(false)} aria-hidden />
+
+      <div className="dash__col">
+        <header className="dash__bar">
+          <button
+            type="button"
+            className="icon-btn dash__menu"
+            aria-label={t('القائمة', 'Menu')}
+            aria-expanded={open}
+            aria-controls="dash-side"
+            onClick={() => setOpen((v) => !v)}
+          >
+            <Icon name="menu" size={18} />
+          </button>
+          <span className="dash__title">{title}</span>
+          <div className="dash__tools">
+            <LanguageToggle />
+            <ThemeToggle />
+            {tools}
+            {user ? (
+              <span className="dash__user">
+                <span className="avatar" aria-hidden>
+                  {user.name.trim().slice(0, 1)}
+                </span>
+                <span className="dash__user-name">{user.name}</span>
+              </span>
+            ) : null}
+            {exitHref ? (
+              <Link href={exitHref} className="icon-btn" aria-label={t('الخروج من اللوحة', 'Leave dashboard')} title={t('الخروج من اللوحة', 'Leave dashboard')}>
+                <Icon name="x" size={18} />
+              </Link>
+            ) : null}
+          </div>
+        </header>
+        {mobileTabs ? (
+          <nav className="dash__tabs" aria-label={t('أقسام اللوحة', 'Dashboard sections')}>
+            {groups
+              .flatMap((g) => g.items)
+              .map((item) => {
+                const active = item.href === current;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="dash__tab"
+                    data-active={active}
+                    ref={active ? activeTab : undefined}
+                    {...(active ? { 'aria-current': 'page' as const } : {})}
+                  >
+                    <Icon name={item.icon} size={16} />
+                    <span>{name(item)}</span>
+                    {item.count ? <span className="dash__count">{item.count}</span> : null}
+                  </Link>
+                );
+              })}
+            {sideFoot ? <div className="dash__tabs-foot">{sideFoot}</div> : null}
+          </nav>
+        ) : null}
+        <main className="dash__main">
+          {banner}
+          {children}
+        </main>
+      </div>
+    </div>
+  );
+}
+
+/** هوية أعلى الشريط: مربّع أيقونة، واسم، وسطر حالة بنقطة لونها */
+export function DashIdent({
+  href,
+  name,
+  sub,
+  tone,
+  mark,
+}: {
+  href: string;
+  name: string;
+  sub?: string | undefined;
+  tone?: 'success' | 'warning' | 'danger' | undefined;
+  mark: ReactNode;
+}) {
+  return (
+    <Link href={href} className="dash__ident">
+      {mark}
+      <span className="dash__ident-text">
+        <span className="dash__ident-name">{name}</span>
+        {sub ? (
+          <span className="dash__ident-sub" {...(tone ? { 'data-tone': tone } : {})}>
+            {tone ? <span className="dot" aria-hidden /> : null}
+            {sub}
+          </span>
+        ) : null}
+      </span>
+    </Link>
+  );
+}

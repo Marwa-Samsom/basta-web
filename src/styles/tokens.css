@@ -1,0 +1,410 @@
+/* ==========================================================================
+   بسطة · رموز التصميم — مصدر الحقيقة الوحيد
+   المرحلة 02 · لا يُكتب لون أو مقاس صريح في أي مكوّن خارج هذا الملف
+   ==========================================================================
+
+   قواعد الاستخدام:
+   1. كل لون في التطبيق يأتي من متغيّر هنا. أي hex في ملف مكوّن خطأ يوقفه فحص CI.
+   2. الفيروزي الداكن (--price) محجوز للمال وحده — سعر، خصم، مجموع، رصيد. لا يُستعمل زينةً.
+   3. المسافات من سلّم 4px حصراً. لا 5px ولا 13px.
+   4. الخصائص المنطقية فقط: inline-start/end لا left/right. المنصة تعمل RTL و LTR.
+
+   الهوية اللونية — قرار صاحب المشروع (13 سبتمبر 2026): تدرّجات العنّابي مع البيج،
+   بدل النيلي والرمان. كل زوج نص/خلفية أدناه مقيس بمعيار WCAG AA على السمتين،
+   والجدول في docs/02-design/DESIGN-SYSTEM.md §6.
+   ========================================================================== */
+
+/* ---------- 1 · الخطوط ---------- */
+/* Almarai 800 للعناوين — وجه عربي له شخصية، يفصل العنوان عن النص بصرياً
+   IBM Plex Sans Arabic للواجهة — أوسع أوزاناً وأدق في المقاسات الصغيرة
+   IBM Plex Mono للأرقام الجدولية في اللوحات، وخلفه IBM Plex Sans Arabic لما يجاور الرقم من عربي
+   (رمز العملة «د.أ»، «م»، «أيام») — كان يقع على Courier New فيُرسم متباعداً «د . أ» (SYS-080) */
+
+:root {
+  --font-display: "Almarai", "Segoe UI", Tahoma, sans-serif;
+  --font-ui:      "IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif;
+  --font-mono:    "IBM Plex Mono", "IBM Plex Sans Arabic", "Consolas", ui-monospace, monospace;
+
+  /* سلّم الطباعة — نسبة 1.2 (ثالثة صغرى)، محسوبة لا مرتجلة. رُفع درجة (نحو 1px في
+     الصغير و2px في العناوين) بطلب صاحبة المشروع، 22 أكتوبر 2026: الخط كان صغيراً؛
+     ثم كُبِّر كله 10% بطلبها، 24 أكتوبر 2026 — النسب بين الدرجات كما هي */
+  --text-2xs:  0.825rem;   /* 13.2px — شارات، تسميات دقيقة */
+  --text-xs:   0.894rem;   /* 14.3px — بيانات ثانوية */
+  --text-sm:   0.9625rem;  /* 15.4px — أساس اللوحات */
+  --text-base: 1.1rem;     /* 17.6px — أساس المتجر */
+  --text-md:   1.2375rem;  /* 19.8px — نص بارز */
+  --text-lg:   1.444rem;   /* 23.1px — عنوان قسم */
+  --text-xl:   1.7875rem;  /* 28.6px — عنوان صفحة */
+  --text-2xl:  2.2rem;     /* 35.2px — عنوان رئيسي */
+  --text-3xl:  2.75rem;    /* 44px   — بطل الصفحة */
+
+  --leading-tight:  1.25;  /* عناوين */
+  --leading-snug:   1.45;  /* واجهة */
+  --leading-normal: 1.7;   /* نص جارٍ */
+
+  --tracking-label: 0.06em; /* تسميات لاتينية بأحرف كبيرة فقط */
+
+  --weight-normal: 400;
+  --weight-medium: 500;
+  --weight-semi:   600;
+  --weight-bold:   700;
+  --weight-black:  800;
+}
+
+/* ---------- 2 · الألوان الخام ---------- */
+/* لا تُستعمل مباشرة في المكوّنات — الأدوار في القسم 3 هي الواجهة */
+
+:root {
+  /* العنّابي — لون العلامة */
+  --burgundy-50:  #FBF1F3;
+  --burgundy-100: #F4DDE2;
+  --burgundy-200: #E6B6C1;
+  --burgundy-300: #D08A9B;
+  --burgundy-400: #B05A70;
+  --burgundy-500: #8C2F46;  /* الأساس */
+  --burgundy-600: #74243A;
+  --burgundy-700: #5C1B2E;
+  --burgundy-800: #451422;
+  --burgundy-900: #2E0D17;
+
+  /* الفيروزي الداكن — للمال وحده. مكمّل العنّابي على دائرة الألوان فلا يشتبه به،
+     وبعيد عن أخضر النجاح بما يكفي — والمال رقم دائماً والنجاح شارة بنص */
+  --teal-50:  #E3F2F0;
+  --teal-100: #C4E5E1;
+  --teal-300: #5CC6B8;
+  --teal-500: #0E6B66;
+  --teal-600: #0B5652;
+  --teal-700: #08403D;
+  --teal-900: #0F2624;
+
+  /* البيج — محايدات دافئة. رماديّ بارد بجانب العنّابي يقرأ كغير مقصود */
+  --beige-0:   #FFFFFF;
+  --beige-25:  #FDFAF6;
+  --beige-50:  #F8F3EC;
+  --beige-100: #F0E8DD;
+  --beige-200: #E3D7C7;
+  --beige-300: #CBBBA6;
+  --beige-350: #A89680;
+  --beige-400: #958470;  /* حدود الحقول في الفاتح — 3:1 */
+  --beige-500: #7D6C5B;
+  --beige-600: #6B5C4D;
+  --beige-700: #4A3F35;
+  --beige-800: #332B24;
+  --beige-850: #28211C;
+  --beige-900: #1E1814;
+  --beige-950: #14100D;
+
+  /* دلالية — منفصلة عن العلامة. الخطر أحمر برتقالي (زاوية 11°) لا عنّابي (345°) */
+  --green-100:  #E3F1E6;  --green-500:  #2F7A3E;  --green-600:  #25622F;  --green-900:  #13261A;
+  --orange-100: #FBEBDD;  --orange-500: #9A4F0B;  --orange-600: #7E4009;  --orange-900: #2E1C0B;
+  --red-100:    #FBE3DD;  --red-500:    #C23A1A;  --red-600:    #A12E13;  --red-900:    #331410;
+  --blue-100:   #E1EBF4;  --blue-500:   #2D5F8B;  --blue-600:   #244C70;  --blue-900:   #0F1E2C;
+}
+
+/* ---------- 3 · الأدوار — السمة الفاتحة ---------- */
+/* كل متغيّر هنا يُعرَّف في :root المجرّد أولاً.
+   لون يوجد تعريفه الوحيد داخل media أو data-theme = صفحة غير مقروءة. */
+
+:root {
+  /* الأسطح */
+  --surface-page:    var(--beige-50);
+  --surface-card:    var(--beige-0);
+  --surface-raised:  var(--beige-0);
+  --surface-sunken:  var(--beige-100);
+  --surface-inverse: var(--beige-850);
+  /* هيكل التحميل — يُرى على الصفحة والبطاقة والسطح المرفوع كلها */
+  --skeleton:        var(--beige-100);
+
+  /* النص */
+  --text-strong: var(--beige-900);
+  --text-body:   var(--beige-700);
+  --text-muted:  var(--beige-600);
+  --text-faint:  var(--beige-500);
+  --text-on-brand:   var(--beige-0);
+  --text-on-inverse: var(--beige-50);
+
+  /* الحدود */
+  --border-subtle:  var(--beige-100);
+  --border-default: var(--beige-200);
+  --border-strong:  var(--beige-400);  /* حدود الحقول والأزرار الثانوية — 3:1 */
+
+  /* العلامة */
+  --brand:         var(--burgundy-500);
+  --brand-hover:   var(--burgundy-600);
+  --brand-active:  var(--burgundy-700);
+  --brand-subtle:  var(--burgundy-50);
+  --brand-border:  var(--burgundy-200);
+  --brand-text:    var(--burgundy-600);
+
+  /* المال — الفيروزي. محجوز: سعر، خصم، مجموع، رصيد */
+  --price:        var(--teal-500);
+  --price-subtle: var(--teal-50);
+  --price-border: var(--teal-100);
+
+  /* الدلالات — النص على الخلفية الخفيفة يأخذ درجة -text الأدكن */
+  --success: var(--green-500);  --success-subtle: var(--green-100);  --success-text: var(--green-600);
+  --warning: var(--orange-500); --warning-subtle: var(--orange-100); --warning-text: var(--orange-600);
+  --danger:  var(--red-500);    --danger-subtle:  var(--red-100);    --danger-text:  var(--red-600);
+  --info:    var(--blue-500);   --info-subtle:    var(--blue-100);   --info-text:    var(--blue-600);
+
+  /* التركيز — لون واحد لكل الواجهة، لا يتغيّر بتغيّر المكوّن */
+  --focus-ring: var(--burgundy-400);
+
+  /* الظلال — خافتة، بميل بني دافئ لا أسود خالص */
+  --shadow-sm: 0 1px 2px rgba(30, 24, 20, 0.06);
+  --shadow-md: 0 2px 6px rgba(30, 24, 20, 0.08), 0 1px 2px rgba(30, 24, 20, 0.04);
+  --shadow-lg: 0 8px 24px rgba(30, 24, 20, 0.10), 0 2px 6px rgba(30, 24, 20, 0.05);
+  --shadow-overlay: 0 16px 48px rgba(30, 24, 20, 0.18);
+}
+
+/* ---------- 4 · الأدوار — السمة الداكنة ---------- */
+/* الحالة الافتراضية للمتصفّح لا تحمل data-theme، فالوسيط وحده يفصل.
+   الحارس :not([data-theme="light"]) يجعل الاختيار الصريح يغلب نظام التشغيل. */
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --surface-page:    var(--beige-950);
+    --surface-card:    var(--beige-900);
+    --surface-raised:  var(--beige-850);
+    --surface-sunken:  var(--beige-950);
+    --surface-inverse: var(--beige-100);
+    /* لا sunken هنا: هو لون الصفحة نفسه في الداكن، فكان الهيكل يختفي (CHK-016) */
+    --skeleton:        var(--beige-800);
+
+    --text-strong: var(--beige-25);
+    --text-body:   var(--beige-200);
+    --text-muted:  var(--beige-350);
+    --text-faint:  var(--beige-400);
+    --text-on-brand:   var(--beige-900);
+    --text-on-inverse: var(--beige-900);
+
+    --border-subtle:  var(--beige-850);
+    --border-default: var(--beige-800);
+    --border-strong:  var(--beige-500);
+
+    /* العنّابي يُرفع في الداكن — الأساس يغرق في الخلفية، والنص على الزر يصير داكناً */
+    --brand:        var(--burgundy-300);
+    --brand-hover:  var(--burgundy-200);
+    --brand-active: var(--burgundy-100);
+    --brand-subtle: var(--burgundy-900);
+    --brand-border: var(--burgundy-700);
+    --brand-text:   var(--burgundy-300);
+
+    --price:        var(--teal-300);
+    --price-subtle: var(--teal-900);
+    --price-border: var(--teal-700);
+
+    --success: #6CC287; --success-subtle: var(--green-900);  --success-text: #6CC287;
+    --warning: #E39A4B; --warning-subtle: var(--orange-900); --warning-text: #E39A4B;
+    --danger:  #F07A66; --danger-subtle:  var(--red-900);    --danger-text:  #F07A66;
+    --info:    #7FB2E0; --info-subtle:    var(--blue-900);   --info-text:    #7FB2E0;
+
+    --focus-ring: var(--burgundy-300);
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.45), 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.35);
+    --shadow-overlay: 0 16px 48px rgba(0, 0, 0, 0.6);
+  }
+}
+
+/* تكرار مقصود: يجعل مبدّل السمة يغلب في الاتجاهين */
+:root[data-theme="dark"] {
+  --surface-page:    var(--beige-950);
+  --surface-card:    var(--beige-900);
+  --surface-raised:  var(--beige-850);
+  --surface-sunken:  var(--beige-950);
+  --surface-inverse: var(--beige-100);
+  /* لا sunken هنا: هو لون الصفحة نفسه في الداكن، فكان الهيكل يختفي (CHK-016) */
+  --skeleton:        var(--beige-800);
+
+  --text-strong: var(--beige-25);
+  --text-body:   var(--beige-200);
+  --text-muted:  var(--beige-350);
+  --text-faint:  var(--beige-400);
+  --text-on-brand:   var(--beige-900);
+  --text-on-inverse: var(--beige-900);
+
+  --border-subtle:  var(--beige-850);
+  --border-default: var(--beige-800);
+  --border-strong:  var(--beige-500);
+
+  --brand:        var(--burgundy-300);
+  --brand-hover:  var(--burgundy-200);
+  --brand-active: var(--burgundy-100);
+  --brand-subtle: var(--burgundy-900);
+  --brand-border: var(--burgundy-700);
+  --brand-text:   var(--burgundy-300);
+
+  --price:        var(--teal-300);
+  --price-subtle: var(--teal-900);
+  --price-border: var(--teal-700);
+
+  --success: #6CC287; --success-subtle: var(--green-900);  --success-text: #6CC287;
+  --warning: #E39A4B; --warning-subtle: var(--orange-900); --warning-text: #E39A4B;
+  --danger:  #F07A66; --danger-subtle:  var(--red-900);    --danger-text:  #F07A66;
+  --info:    #7FB2E0; --info-subtle:    var(--blue-900);   --info-text:    #7FB2E0;
+
+  --focus-ring: var(--burgundy-300);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.45), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.35);
+  --shadow-overlay: 0 16px 48px rgba(0, 0, 0, 0.6);
+}
+
+/* ---------- 5 · المسافات والأشكال ---------- */
+
+:root {
+  /* سلّم 4px — لا قيمة خارجه */
+  --space-1: 0.25rem;  /*  4 */
+  --space-2: 0.5rem;   /*  8 */
+  --space-3: 0.75rem;  /* 12 */
+  --space-4: 1rem;     /* 16 */
+  --space-5: 1.25rem;  /* 20 */
+  --space-6: 1.5rem;   /* 24 */
+  --space-8: 2rem;     /* 32 */
+  --space-10: 2.5rem;  /* 40 */
+  --space-12: 3rem;    /* 48 */
+  --space-16: 4rem;    /* 64 */
+  --space-20: 5rem;    /* 80 */
+
+  /* أنصاف الأقطار — ثلاث درجات فقط. نصف قطر واحد على كل شيء يسطّح الهرمية */
+  --radius-sm:   4px;   /* شارات، حقول، أزرار */
+  --radius-md:   8px;   /* بطاقات، لوحات */
+  --radius-lg:   14px;  /* نوافذ، أوراق سفلية */
+  --radius-full: 999px; /* صور رمزية، مؤشرات */
+
+  /* ارتفاعات الأهداف اللمسية — 44px حد أدنى للمس على الجوال */
+  --control-sm: 32px;
+  --control-md: 40px;
+  --control-lg: 48px;
+  --touch-min:  44px;
+
+  /* عرض الأعمدة */
+  --measure-prose: 68ch;  /* أقصى عرض نص جارٍ */
+  --width-storefront: 1280px;
+  --width-dashboard:  1600px;
+  --width-form:       520px;
+
+  /* الحركة */
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+
+  /* الطبقات */
+  --z-sticky: 100;
+  --z-drawer: 200;
+  --z-modal:  300;
+  --z-toast:  400;
+
+  /* رمز QR — أسود على أبيض في الوضعين: الماسح يحتاج تبايناً ثابتاً لا يتبع السمة */
+  --qr-ink:   #000;
+  --qr-paper: #fff;
+}
+
+/* ---------- 6 · الكثافة ---------- */
+/* المتجر يُقرأ، اللوحة تُشغَّل. كثافتان من رموز واحدة، لا نظامان. */
+
+:root,
+[data-density="comfortable"] {
+  --density-text:     var(--text-base);
+  --density-row-h:    var(--control-lg);
+  --density-pad-x:    var(--space-4);
+  --density-pad-y:    var(--space-3);
+  --density-gap:      var(--space-4);
+  --density-card-pad: var(--space-5);
+}
+
+[data-density="compact"] {
+  --density-text:     var(--text-sm);
+  --density-row-h:    var(--control-sm);
+  --density-pad-x:    var(--space-3);
+  --density-pad-y:    var(--space-2);
+  --density-gap:      var(--space-3);
+  --density-card-pad: var(--space-4);
+}
+
+/* ---------- 7 · الأساس ---------- */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { color-scheme: light dark; }
+/* الاختيار الصريح (زرّ الوضع) يحكم أدوات المتصفّح أيضاً: الأشرطة والحقول */
+html[data-theme="light"] { color-scheme: light; }
+html[data-theme="dark"] { color-scheme: dark; }
+
+body {
+  margin: 0;
+  background: var(--surface-page);   /* إلزامي: جسم شفاف يستعير أرضية المضيف */
+  color: var(--text-body);
+  font-family: var(--font-ui);
+  font-size: var(--text-base);
+  line-height: var(--leading-snug);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  font-weight: var(--weight-bold);
+  color: var(--text-strong);
+  line-height: var(--leading-tight);
+  text-wrap: balance;
+  margin: 0;
+}
+
+img, video { max-width: 100%; height: auto; }
+
+/* التركيز — مرئي دائماً، بلون واحد، ولا يُلغى أبداً */
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* الأرقام تصطفّ في الأعمدة */
+.tabular, table td, .price, .amount {
+  font-variant-numeric: tabular-nums;
+}
+
+/* المال — الفيروزي، ووزن يفصله عمّا حوله */
+.price {
+  color: var(--price);
+  font-weight: var(--weight-semi);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---------- 8 · قواعد الاتجاه ---------- */
+/* المنصة عربية أولاً وتعمل LTR أيضاً. الخصائص المنطقية تتكفّل بالانعكاس،
+   عدا ثلاث حالات لا تنعكس تلقائياً: */
+
+/* 1. الأيقونات الاتجاهية (سهم رجوع، سهم التالي) تُقلب صراحةً */
+[dir="rtl"] .icon-directional { transform: scaleX(-1); }
+
+/* 2. الأرقام والرموز اللاتينية داخل نص عربي تحتاج عزلاً
+      وإلا انقلب ترتيب "SKU-2024" أو رقم الهاتف */
+.ltr-embed {
+  direction: ltr;
+  unicode-bidi: isolate;
+  display: inline-block;
+}
+
+/* 3. الشعارات والعلامات التجارية لا تنعكس */
+.no-flip { transform: none !important; }
+
+/* ---------- 9 · فحوص آلية تسري على الملف ----------
+
+   CI يرفض الدمج إن وُجد أيٌّ مما يلي خارج هذا الملف:
+     • قيمة hex أو rgb() في ملف مكوّن
+     • margin-left / margin-right / padding-left / padding-right
+     • left: / right: في تموضع مطلق (البديل inset-inline-start/end)
+     • font-size برقم px صريح
+     • إلغاء حلقة التركيز بلا بديل مرئي
+   ---------------------------------------------------------------------- */
